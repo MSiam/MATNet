@@ -5,7 +5,7 @@ import os
 import glob
 from tqdm import tqdm
 from PIL import Image
-from scipy.misc import imresize
+#from scipy.misc import imresize
 
 from modules.MATNet import Encoder, Decoder
 from utils.utils import check_parallel
@@ -29,7 +29,8 @@ image_transforms = transforms.Compose([to_tensor, normalize])
 
 model_name = 'MATNet' # specify the model name
 epoch = 0 # specify the epoch number
-davis_result_dir = './output/davis16'
+#davis_result_dir = './output/davis16'
+davis_result_dir = './output/moca'
 
 encoder_dict, decoder_dict, enc_opt_dict, dec_opt_dict, load_args =\
     load_checkpoint_epoch(model_name, epoch, True, False)
@@ -45,15 +46,18 @@ decoder.cuda()
 encoder.train(False)
 decoder.train(False)
 
-val_set = 'data/DAVIS2017/ImageSets/2016/val.txt'
+#val_set = 'data/DAVIS2017/ImageSets/2016/val.txt'
+val_set = '/local/riemann/home/msiam/MoCA_filtered2/val.txt'
 with open(val_set) as f:
     seqs = f.readlines()
-    seqs = [seq.strip() for seq in seqs]
+    seqs = [seq.strip().split(' ')[0].split('/')[-2] for seq in seqs]
+seqs = list(set(seqs))
 
 for video in tqdm(seqs):
-    davis_root_dir = 'data/DAVIS2017/JPEGImages/480p'
-    davis_flow_dir = 'data/DAVIS2017/davis2017-flow'
-
+#    davis_root_dir = 'data/DAVIS2017/JPEGImages/480p'
+#    davis_flow_dir = 'data/DAVIS2017/davis2017-flow'
+    davis_root_dir = '/local/riemann/home/msiam/MoCA_filtered2/JPEGImages/'
+    davis_flow_dir = '/local/riemann/home/msiam/MoCA_filtered2/FlowImages_gap1/'
     image_dir = os.path.join(davis_root_dir, video)
     flow_dir = os.path.join(davis_flow_dir, video)
 
@@ -67,8 +71,8 @@ for video in tqdm(seqs):
 
             width, height = image.size
 
-            image = imresize(image, inputRes)
-            flow = imresize(flow, inputRes)
+            image = image.resize(inputRes)
+            flow = flow.resize(inputRes)
 
             image = image_transforms(image)
             flow = image_transforms(flow)

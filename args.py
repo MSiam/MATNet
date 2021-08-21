@@ -80,7 +80,7 @@ def get_parser():
                         action='store_true')
     parser.add_argument('-vis_env', type=str, default='')
     parser.add_argument('-vis_port', type=int, default=28333)
-    parser.add_argument('-vis_freq', type=int, default=10)
+    parser.add_argument('-vis_freq', type=int, default=100)
 
     parser.add_argument('-ckpt_path', type=str, default='ckpt')
 

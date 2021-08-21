@@ -139,11 +139,14 @@ def trainIters(args):
                                 criterion(p4, bdry, negative_pixels) + \
                                 criterion(p5, bdry, negative_pixels)
                     loss = mask_loss + 0.2 * bdry_loss
+                    iou = db_eval_iou_multi(mask.cpu().detach().numpy(),
+                                            mask_pred.cpu().detach().numpy())
 
                     if cur_itrs % args.vis_freq == 0:
                         vis.vis_scalar('Mask Loss', cur_itrs, mask_loss.detach().cpu())
                         vis.vis_scalar('Boundary Loss', cur_itrs, bdry_loss.detach().cpu())
                         vis.vis_scalar('Total Loss', cur_itrs, loss.detach().cpu())
+                        vis.vis_scalar('Train IoU', cur_itrs, iou)
 
                         bidx = 0
                         img_vis = denorm(image[bidx].cpu())
@@ -166,8 +169,6 @@ def trainIters(args):
                                                           p5_vis), axis=2)
                         vis.vis_image('Boundary Label Pred', concat_img_bdry)
 
-                    iou = db_eval_iou_multi(mask.cpu().detach().numpy(),
-                                            mask_pred.cpu().detach().numpy())
 
                     dec_opt.zero_grad()
                     enc_opt.zero_grad()
@@ -211,6 +212,7 @@ def trainIters(args):
                     start = time.time()
 
         miou = np.mean(epoch_losses['val']['iou'])
+        vis.vis_scalar('Val mIoU', e, miou)
         if miou > best_iou:
             best_iou = miou
             save_checkpoint_epoch(args, encoder, decoder,

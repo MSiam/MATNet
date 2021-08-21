@@ -16,7 +16,7 @@ def get_parser():
                               '(the one with name model_name will be used)'))
     parser.set_defaults(resume=False)
     parser.add_argument('-seed', dest='seed', default=123, type=int)
-    parser.add_argument('-gpu_id', dest='gpu_id', default=0, type=int)
+    parser.add_argument('-gpu_id', dest='gpu_id', default=0, type=int, nargs='+')
     parser.add_argument('-lr', dest='lr', default=1e-3, type=float)
     parser.add_argument('-lr_cnn', dest='lr_cnn', default=1e-4, type=float)
     parser.add_argument('-optim_cnn', dest='optim_cnn', default='sgd',

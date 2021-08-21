@@ -4,8 +4,9 @@ import torch.nn.functional as F
 
 
 class WeightedBCE2d(nn.Module):
-    def __init__(self):
+    def __init__(self, rank):
         super(WeightedBCE2d, self).__init__()
+        self.rank = rank
 
     def forward(self, input, target, negative_pixels):
         log_p = input.transpose(1, 2).transpose(2, 3).contiguous().view(1, -1)
@@ -29,7 +30,7 @@ class WeightedBCE2d(nn.Module):
         weight[hard_negative_index] = 1.0 + negative_pixels_t[hard_negative_index_].cpu().numpy()
 
         weight = torch.from_numpy(weight)
-        weight = weight.cuda()
+        weight = weight.to(self.rank)
         loss = F.binary_cross_entropy(log_p, target_t, weight, size_average=True)
 
         return loss

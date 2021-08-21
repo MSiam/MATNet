@@ -2,7 +2,30 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
+from utils.utils import load_checkpoint_epoch, check_parallel
 
+class MATNet(nn.Module):
+    def __init__(self):
+        super(MATNet, self).__init__()
+        self.encoder = Encoder()
+        self.decoder = Decoder()
+
+    def forward(self, image, flow):
+        r5, r4, r3, r2 = self.encoder(image, flow)
+        mask_pred, p1, p2, p3, p4, p5 = self.decoder(r5, r4, r3, r2)
+        return mask_pred, p1, p2, p3, p4, p5
+
+#    def resume(self, args):
+#        encoder_dict, decoder_dict, enc_opt_dict, dec_opt_dict, load_args = \
+#            load_checkpoint_epoch(args.model_name, args.epoch_resume,
+#                                  args.use_gpu)
+#
+#        epoch_resume = args.epoch_resume
+#
+#        encoder_dict, decoder_dict = check_parallel(encoder_dict, decoder_dict)
+#        self.encoder.load_state_dict(encoder_dict)
+#        self.decoder.load_state_dict(decoder_dict)
+#        return epoch_resume
 
 class Encoder(nn.Module):
     def __init__(self):

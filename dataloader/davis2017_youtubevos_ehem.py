@@ -117,11 +117,10 @@ class DAVISLoader(data.Dataset):
             mask = self.target_transform(mask)
             bdry = self.target_transform(bdry)
             negative_pixels = self.target_transform(negative_pixels)
-
         return image, flow, mask, bdry, negative_pixels
 
     def load_youtubevos(self, args):
-        self._db_sequences = db_read_sequences_train_youtube()
+        _db_sequences = db_read_sequences_train_youtube()
 
         # Check lmdb existance. If not proceed with standard dataloader.
         lmdb_env_seq_dir = osp.join(cfg_youtube.PATH.DATA, 'lmdb_seq')
@@ -137,12 +136,12 @@ class DAVISLoader(data.Dataset):
                   ' It is recommended to use LMDB.')
 
         # Load sequences
-        self.sequences = [Sequence(self._phase, s, lmdb_env=lmdb_env_seq)
-                          for s in self._db_sequences]
+        sequences = [Sequence(self._phase, s, lmdb_env=lmdb_env_seq)
+                          for s in _db_sequences]
 
         # Load sequences
         videos = []
-        for seq, s in zip(self.sequences, self._db_sequences):
+        for seq, s in zip(sequences, _db_sequences):
             videos.append(s)
 
         for _video in videos:
@@ -174,7 +173,7 @@ class DAVISLoader(data.Dataset):
                len(self.hedfiles))
 
     def load_davis(self, args):
-        self._db_sequences = db_read_sequences_davis(args.year, self._phase)
+        _db_sequences = db_read_sequences_davis(args.year, self._phase)
 
         # Check lmdb existance. If not proceed with standard dataloader.
         lmdb_env_seq_dir = osp.join(cfg_davis.PATH.DATA, 'lmdb_seq')
@@ -189,19 +188,19 @@ class DAVISLoader(data.Dataset):
             print('LMDB not found. This could affect the data loading time.'
                   ' It is recommended to use LMDB.')
 
-        self.sequences = [Sequence(self._phase, s.name, lmdb_env=lmdb_env_seq)
-                          for s in self._db_sequences]
-        self._db_sequences = db_read_sequences_davis(args.year, self._phase)
+        sequences = [Sequence(self._phase, s.name, lmdb_env=lmdb_env_seq)
+                          for s in _db_sequences]
+        _db_sequences = db_read_sequences_davis(args.year, self._phase)
 
         # Load annotations
         self.annotations = [Annotation(
             self._phase, s.name, self._single_object, lmdb_env=lmdb_env_annot)
-            for s in self._db_sequences]
-        self._db_sequences = db_read_sequences_davis(args.year, self._phase)
+            for s in _db_sequences]
+        _db_sequences = db_read_sequences_davis(args.year, self._phase)
 
         # Load Videos
         videos = []
-        for seq, s in zip(self.sequences, self._db_sequences):
+        for seq, s in zip(sequences, _db_sequences):
             if s['set'] == self._phase:
                 videos.append(s['name'])
 

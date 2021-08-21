@@ -6,8 +6,8 @@ import PIL
 from run import estimate
 
 def main():
-    davis_folder = '/media/iiai/data/VOS/DAVIS2017/JPEGImages/480p'
-    save_dir = '/media/iiai/data/VOS/DAVIS2017/davis2017-hed'
+    davis_folder = '/local/riemann/home/msiam/DAVIS17/DAVIS/JPEGImages/480p'
+    save_dir = '/local/riemann/home/msiam/DAVIS17/DAVIS/davis2017-hed'
 
     videos = os.listdir(davis_folder)
     print(videos)

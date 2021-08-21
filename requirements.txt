@@ -13,4 +13,3 @@ numpy==1.16.2
 matplotlib==3.0.3
 Pillow==8.1.1
 PyYAML==5.1.2
-skimage==0.0

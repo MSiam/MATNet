@@ -83,19 +83,19 @@ def get_optimizer(optim_name, lr, parameters, weight_decay=0, momentum=0.9):
 
 
 def save_checkpoint_epoch(args, encoder, decoder, enc_opt, dec_opt, epoch, best=False):
-    torch.save(encoder.state_dict(), os.path.join('ckpt', args.model_name, 'encoder_{}.pt'.format(epoch)))
-    torch.save(decoder.state_dict(), os.path.join('ckpt', args.model_name, 'decoder_{}.pt'.format(epoch)))
-    torch.save(enc_opt.state_dict(), os.path.join('ckpt', args.model_name, 'enc_opt_{}.pt'.format(epoch)))
-    torch.save(dec_opt.state_dict(), os.path.join('ckpt', args.model_name, 'dec_opt_{}.pt'.format(epoch)))
+    torch.save(encoder.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'encoder_{}.pt'.format(epoch)))
+    torch.save(decoder.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'decoder_{}.pt'.format(epoch)))
+    torch.save(enc_opt.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'enc_opt_{}.pt'.format(epoch)))
+    torch.save(dec_opt.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'dec_opt_{}.pt'.format(epoch)))
 
     if best:
-        torch.save(encoder.state_dict(), os.path.join('ckpt', args.model_name, 'encoder.pt'))
-        torch.save(decoder.state_dict(), os.path.join('ckpt', args.model_name, 'decoder.pt'))
-        torch.save(enc_opt.state_dict(), os.path.join('ckpt', args.model_name, 'enc_opt.pt'))
-        torch.save(dec_opt.state_dict(), os.path.join('ckpt', args.model_name, 'dec_opt.pt'))
+        torch.save(encoder.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'encoder.pt'))
+        torch.save(decoder.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'decoder.pt'))
+        torch.save(enc_opt.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'enc_opt.pt'))
+        torch.save(dec_opt.state_dict(), os.path.join(args.ckpt_path, args.model_name, 'dec_opt.pt'))
 
     # save parameters for future use
-    pickle.dump(args, open(os.path.join('ckpt', args.model_name, 'args.pkl'), 'wb'))
+    pickle.dump(args, open(os.path.join(args.ckpt_path, args.model_name, 'args.pkl'), 'wb'))
 
 
 def load_checkpoint_epoch(model_name, epoch, use_gpu=True, load_opt=True):

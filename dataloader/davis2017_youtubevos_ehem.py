@@ -9,7 +9,7 @@ import lmdb
 import numpy as np
 from PIL import Image
 import os.path as osp
-from scipy.misc import imresize
+#from scipy.misc import imresize
 
 from torchvision import transforms
 from dataloader import custom_transforms as tr
@@ -89,12 +89,12 @@ class DAVISLoader(data.Dataset):
         negative_pixels = Image.fromarray(negative_pixels)
 
         if self.inputRes is not None:
-            image = imresize(image, self.inputRes)
-            flow = imresize(flow, self.inputRes)
-            mask = imresize(mask, self.inputRes, interp='nearest')
-            bdry = imresize(bdry, self.inputRes, interp='nearest')
-            negative_pixels = imresize(negative_pixels, self.inputRes,
-                                       interp='nearest')
+            image = np.array(image.resize(self.inputRes))
+            flow = np.array(flow.resize(self.inputRes))
+            mask = np.array(mask.resize(self.inputRes, Image.NEAREST))
+            bdry = np.array(bdry.resize(self.inputRes, Image.NEAREST))
+            negative_pixels = np.array(negative_pixels.resize(self.inputRes,
+                                       Image.NEAREST), dtype=np.uint8)
 
         sample = {'image': image, 'flow': flow, 'mask': mask, 'bdry': bdry,
                   'negative_pixels': negative_pixels}

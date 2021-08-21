@@ -1,7 +1,7 @@
 clc
 
-src_dir = 'data/YouTubeVOS_2018/train/Annotations';
-save_dir = 'data/YouTubeVOS_2018/train/Annotations_edge';
+src_dir = 'YouTubeVOS_2018/train/Annotations';
+save_dir = 'YouTubeVOS_2018/train/Annotations_edge';
 
 seqs = dir(src_dir);
 seqs = {seqs.name};

@@ -16,7 +16,7 @@ from dataloader.dataset_utils import get_dataset_davis_youtube_ehem
 from utils.utils import save_checkpoint_epoch, load_checkpoint_epoch
 from utils.objectives import WeightedBCE2d
 from measures.jaccard import db_eval_iou_multi
-
+from visualizer import Visualizer
 
 def init_dataloaders(args):
     loaders = {}
@@ -45,11 +45,23 @@ def init_dataloaders(args):
 
     return loaders
 
+def mask_denorm(mask):
+    mask_ = mask.cpu().repeat(3,1,1) * 255
+    return mask_
+
+def denorm(img):
+    mean= [0.485, 0.456, 0.406]
+    scale = [0.229, 0.224, 0.225]
+    img = img.permute(1,2,0)
+    img = img * torch.tensor(scale) + torch.tensor(mean)
+    img = img.permute(2,0,1).cpu().numpy()
+    img = np.asarray(img*255, np.uint8)
+    return img
 
 def trainIters(args):
     print(args)
 
-    model_dir = os.path.join('ckpt/', args.model_name)
+    model_dir = os.path.join(args.ckpt_path, args.model_name)
     make_dir(model_dir)
 
     epoch_resume = 0
@@ -86,7 +98,12 @@ def trainIters(args):
 
     loaders = init_dataloaders(args)
 
+    if args.vis_port != -1:
+        vis = Visualizer(server='http://localhost', port=args.vis_port, env=args.vis_env)
+
     best_iou = 0
+
+    cur_itrs = 0
 
     start = time.time()
     for e in range(epoch_resume, args.max_epoch):
@@ -106,6 +123,7 @@ def trainIters(args):
 
             for batch_idx, (image, flow, mask, bdry, negative_pixels) in\
                     enumerate(loaders[split]):
+                cur_itrs += 1
                 image, flow, mask, bdry, negative_pixels = \
                     image.cuda(), flow.cuda(), mask.cuda(), bdry.cuda(),\
                     negative_pixels.cuda()
@@ -121,6 +139,32 @@ def trainIters(args):
                                 criterion(p4, bdry, negative_pixels) + \
                                 criterion(p5, bdry, negative_pixels)
                     loss = mask_loss + 0.2 * bdry_loss
+
+                    if cur_itrs % args.vis_freq == 0:
+                        vis.vis_scalar('Mask Loss', cur_itrs, mask_loss.detach().cpu())
+                        vis.vis_scalar('Boundary Loss', cur_itrs, bdry_loss.detach().cpu())
+                        vis.vis_scalar('Total Loss', cur_itrs, loss.detach().cpu())
+
+                        bidx = 0
+                        img_vis = denorm(image[bidx].cpu())
+                        flow_vis = denorm(flow[bidx].cpu())
+                        mask_vis = mask_denorm(mask[bidx])
+                        mask_pred_vis = mask_denorm(mask_pred[bidx].detach())
+                        neg_vis = mask_denorm(negative_pixels[bidx])
+
+                        concat_img_mask = np.concatenate((img_vis, flow_vis, mask_vis, mask_pred_vis,
+                                                          neg_vis), axis=2)
+                        vis.vis_image('Image Label Pred', concat_img_mask)
+
+                        bdry_vis = mask_denorm(bdry[bidx])
+                        p1_vis = mask_denorm(p1[bidx].detach())
+                        p2_vis = mask_denorm(p2[bidx].detach())
+                        p3_vis = mask_denorm(p3[bidx].detach())
+                        p4_vis = mask_denorm(p4[bidx].detach())
+                        p5_vis = mask_denorm(p5[bidx].detach())
+                        concat_img_bdry = np.concatenate((bdry_vis, p1_vis, p2_vis, p3_vis, p4_vis,
+                                                          p5_vis), axis=2)
+                        vis.vis_image('Boundary Label Pred', concat_img_bdry)
 
                     iou = db_eval_iou_multi(mask.cpu().detach().numpy(),
                                             mask_pred.cpu().detach().numpy())

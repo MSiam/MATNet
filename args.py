@@ -78,6 +78,12 @@ def get_parser():
     parser.add_argument('--display', dest='display', action='store_true')
     parser.add_argument('--no_display_text', dest='no_display_text',
                         action='store_true')
+    parser.add_argument('-vis_env', type=str, default='')
+    parser.add_argument('-vis_port', type=int, default=28333)
+    parser.add_argument('-vis_freq', type=int, default=10)
+
+    parser.add_argument('-ckpt_path', type=str, default='ckpt')
+
     parser.set_defaults(display=False)
     parser.set_defaults(display_route=False)
     parser.set_defaults(no_display_text=False)

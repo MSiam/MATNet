@@ -5,8 +5,9 @@ from torchvision import models
 
 
 class Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self, masking_cfg={}):
         super(Encoder, self).__init__()
+        self.masking_cfg = masking_cfg
 
         resnet_im = models.resnet101(pretrained=True)
         self.conv1_1 = resnet_im.conv1
@@ -41,12 +42,18 @@ class Encoder(nn.Module):
 
     def forward_res2(self, f1, f2):
         x1 = self.conv1_1(f1)
+        if len(self.masking_cfg) != 0:
+            x1, _ = self.update_masked(x1, None, None, current_stage='conv1')
+
         x1 = self.bn1_1(x1)
         x1 = self.relu_1(x1)
         x1 = self.maxpool_1(x1)
         r2_1 = self.res2_1(x1)
 
         x2 = self.conv1_2(f2)
+        if len(self.masking_cfg) != 0:
+            _, x2 = self.update_masked(None, x2, None, current_stage='conv1')
+
         x2 = self.bn1_2(x2)
         x2 = self.relu_2(x2)
         x2 = self.maxpool_2(x2)
@@ -54,8 +61,30 @@ class Encoder(nn.Module):
 
         return r2_1, r2_2
 
+    def update_masked(self, app, mot, fusion, current_stage):
+        stage, stream = self.masking_cfg['layer'].split(',')
+        indices = self.masking_cfg['indices']
+        if stage == current_stage:
+            if stream == 'app_stream' and app is not None:
+                app[:,indices] = 0
+            elif stream == 'mot_stream' and mot is not None:
+                mot[:,indices] = 0
+                return app, mot
+            elif stream == 'sensor_fusion' and fusion is not None:
+                fusion[:,indices] = 0
+
+        if fusion is not None:
+            return fusion
+        else:
+            return app, mot
+
+
     def forward(self, f1, f2):
+
         r2_1, r2_2 = self.forward_res2(f1, f2)
+        if len(self.masking_cfg) != 0:
+            r2_1, r2_2 = self.update_masked(r2_1, r2_2, None, current_stage='layer1')
+
         r2 = torch.cat([r2_1, r2_2], dim=1)
 
         # res3
@@ -65,6 +94,8 @@ class Encoder(nn.Module):
         Za, Zb, Qa, Qb = self.coa_res3(r3_1, r3_2)
         r3_1 = F.relu(Zb + r3_1)
         r3_2 = F.relu(Qb + r3_2)
+        if len(self.masking_cfg) != 0:
+            r3_1, r3_2 = self.update_masked(r3_1, r3_2, None, current_stage='layer2')
         r3 = torch.cat([r3_1, r3_2], dim=1)
 
         # res4
@@ -74,6 +105,8 @@ class Encoder(nn.Module):
         Za, Zb, Qa, Qb = self.coa_res4(r4_1, r4_2)
         r4_1 = F.relu(Zb + r4_1)
         r4_2 = F.relu(Qb + r4_2)
+        if len(self.masking_cfg) != 0:
+            r4_1, r4_2 = self.update_masked(r4_1, r4_2, None, current_stage='layer3')
         r4 = torch.cat([r4_1, r4_2], dim=1)
 
         # res5
@@ -83,12 +116,25 @@ class Encoder(nn.Module):
         Za, Zb, Qa, Qb = self.coa_res5(r5_1, r5_2)
         r5_1 = F.relu(Zb + r5_1)
         r5_2 = F.relu(Qb + r5_2)
+        if len(self.masking_cfg) != 0:
+            r5_1, r5_2 = self.update_masked(r5_1, r5_2, None, current_stage='layer4')
         r5 = torch.cat([r5_1, r5_2], dim=1)
 
         r5_gated = self.gated_res5(r5)
+        if len(self.masking_cfg) != 0:
+            r5_gated = self.update_masked(None, None, r5_gated, current_stage='layer4')
+
         r4_gated = self.gated_res4(r4)
+        if len(self.masking_cfg) != 0:
+            r4_gated = self.update_masked(None, None, r4_gated, current_stage='layer3')
+
         r3_gated = self.gated_res3(r3)
+        if len(self.masking_cfg) != 0:
+            r3_gated = self.update_masked(None, None, r3_gated, current_stage='layer2')
+
         r2_gated = self.gated_res2(r2)
+        if len(self.masking_cfg) != 0:
+            r2_gated = self.update_masked(None, None, r2_gated, current_stage='layer1')
 
         return r5_gated, r4_gated, r3_gated, r2_gated
 

@@ -83,6 +83,7 @@ def get_parser():
     parser.add_argument('-vis_freq', type=int, default=100)
 
     parser.add_argument('-ckpt_path', type=str, default='ckpt')
+    parser.add_argument('-ckpt_epoch', type=int, default=0)
 
     parser.set_defaults(display=False)
     parser.set_defaults(display_route=False)

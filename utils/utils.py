@@ -98,21 +98,22 @@ def save_checkpoint_epoch(args, encoder, decoder, enc_opt, dec_opt, epoch, best=
     pickle.dump(args, open(os.path.join(args.ckpt_path, args.model_name, 'args.pkl'), 'wb'))
 
 
-def load_checkpoint_epoch(model_name, epoch, use_gpu=True, load_opt=True):
+def load_checkpoint_epoch(model_name, epoch, use_gpu=True, load_opt=True, args=None):
     if use_gpu:
-        encoder_dict = torch.load(os.path.join('ckpt', model_name, 'encoder_{}.pt'.format(epoch)))
-        decoder_dict = torch.load(os.path.join('ckpt', model_name, 'decoder_{}.pt'.format(epoch)))
+        print('Loading from ', os.path.join(args.ckpt_path, model_name, 'encoder_{}.pt'.format(epoch)))
+        encoder_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'encoder_{}.pt'.format(epoch)))
+        decoder_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'decoder_{}.pt'.format(epoch)))
         if load_opt:
-            enc_opt_dict = torch.load(os.path.join('ckpt', model_name, 'enc_opt_{}.pt'.format(epoch)))
-            dec_opt_dict = torch.load(os.path.join('ckpt', model_name, 'dec_opt_{}.pt'.format(epoch)))
+            enc_opt_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'enc_opt_{}.pt'.format(epoch)))
+            dec_opt_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'dec_opt_{}.pt'.format(epoch)))
     else:
-        encoder_dict = torch.load(os.path.join('ckpt', model_name, 'encoder_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
-        decoder_dict = torch.load(os.path.join('ckpt', model_name, 'decoder_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
-        enc_opt_dict = torch.load(os.path.join('ckpt', model_name, 'enc_opt_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
-        dec_opt_dict = torch.load(os.path.join('ckpt', model_name, 'dec_opt_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
+        encoder_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'encoder_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
+        decoder_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'decoder_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
+        enc_opt_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'enc_opt_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
+        dec_opt_dict = torch.load(os.path.join(args.ckpt_path, model_name, 'dec_opt_{}.pt'.format(epoch)), map_location=lambda storage, location: storage)
     # save parameters for future use
     if load_opt:
-        args = pickle.load(open(os.path.join('ckpt', model_name, 'args.pkl'), 'rb'))
+        args = pickle.load(open(os.path.join(args.ckpt_path, model_name, 'args.pkl'), 'rb'))
 
         return encoder_dict, decoder_dict, enc_opt_dict, dec_opt_dict, args
     else:
